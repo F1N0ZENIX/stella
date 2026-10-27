@@ -34,7 +34,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
+      - name: Configure Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
       - name: Install workspace dependencies
         run: bun install --frozen-lockfile
       - name: Generate mobile translations
