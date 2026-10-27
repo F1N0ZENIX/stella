@@ -1,14 +1,10 @@
 {
   "expo": {
-    "owner": "stella-ai",
-    "name": "Stella",
-    "slug": "stella-mobile",
+    "name": "Stella Groq",
+    "slug": "stella-groq",
     "version": "1.0.47",
     "runtimeVersion": {
       "policy": "fingerprint"
-    },
-    "updates": {
-      "url": "https://u.expo.dev/892d4162-8a4f-40e8-a0d5-b24516cb7537"
     },
     "orientation": "portrait",
     "scheme": ["stella-mobile", "stella"],
@@ -51,7 +47,7 @@
       }
     },
     "android": {
-      "package": "com.fromyou.stella",
+      "package": "com.f1n0zenix.stellagroq",
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -146,9 +142,7 @@
     "extra": {
       "router": {},
       "nativeCapabilities": ["self-host-servers"],
-      "eas": {
-        "projectId": "892d4162-8a4f-40e8-a0d5-b24516cb7537"
-      }
+      "fork": "android-groq"
     }
   }
 }
