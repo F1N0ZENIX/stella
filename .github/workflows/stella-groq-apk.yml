@@ -78,6 +78,34 @@ jobs:
           }
           NODE
           echo "Expo module diagnostics completed (non-blocking)"
+      - name: Preflight Expo Kotlin inline module mirroring
+        working-directory: packages/mobile/android
+        run: |
+          node - <<'NODE'
+          const path = require('node:path');
+          const fs = require('node:fs');
+          const { spawnSync } = require('node:child_process');
+          const expoRoot = path.dirname(require.resolve('expo/package.json'));
+          const kotlinMirror = path.join(expoRoot, 'android/src/main/java/inline/modules');
+          const inlineList = path.join(expoRoot, 'android/build/inline/modules');
+          fs.mkdirSync(kotlinMirror, { recursive: true });
+          fs.mkdirSync(inlineList, { recursive: true });
+          const args = [
+            '--no-warnings', '--eval', "require('expo/bin/autolinking')",
+            'expo-modules-autolinking', 'mirror-kotlin-inline-modules',
+            '--kotlin-files-mirror-directory', kotlinMirror,
+            '--inline-modules-list-directory', inlineList,
+            '--watched-directories-serialized', '[]'
+          ];
+          console.log('Running Expo Kotlin mirror:', JSON.stringify(args));
+          const result = spawnSync(process.execPath, args, { encoding: 'utf8', stdio: 'inherit', cwd: process.cwd() });
+          if (result.error) { console.error(result.error); process.exit(1); }
+          if (result.status !== 0) {
+            console.error('Expo Kotlin mirroring exited with status', result.status, 'signal', result.signal);
+            process.exit(result.status || 1);
+          }
+          console.log('Expo Kotlin mirroring succeeded');
+          NODE
       - name: Build standalone APK
         run: ./gradlew :app:assembleRelease --no-daemon --max-workers=2 --no-parallel --info --stacktrace -PreactNativeArchitectures=arm64-v8a
         working-directory: packages/mobile/android
