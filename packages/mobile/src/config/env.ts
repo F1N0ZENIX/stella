@@ -10,14 +10,13 @@ const selfHosted = launchServer.kind === "self-hosted" ? launchServer : null;
 export const env = {
   backendUrl: selfHosted ? selfHosted.origin : hostedBackendUrl,
   hostedBackendUrl,
-  siteUrl: cleanUrl(process.env.EXPO_PUBLIC_STELLA_SITE_URL) || "https://stella.sh",
+  siteUrl: cleanUrl(process.env.EXPO_PUBLIC_STELLA_SITE_URL),
   authUrl: selfHosted
     ? cleanUrl(selfHosted.discovery?.urls.auth ?? selfHosted.origin)
     : cleanUrl(process.env.EXPO_PUBLIC_STELLA_AUTH_URL),
   canvasShareBaseUrl: selfHosted
     ? cleanUrl(selfHosted.discovery?.urls.canvasShare ?? selfHosted.origin)
-    : cleanUrl(process.env.EXPO_PUBLIC_CANVAS_SHARE_BASE_URL) ||
-      "https://stellashare.app",
+    : cleanUrl(process.env.EXPO_PUBLIC_CANVAS_SHARE_BASE_URL),
   playIntegrityProjectNumber:
     process.env.EXPO_PUBLIC_PLAY_INTEGRITY_PROJECT_NUMBER?.trim() ?? "",
   mobileScheme:
