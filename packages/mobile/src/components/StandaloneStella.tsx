@@ -81,11 +81,40 @@ export default function StandaloneStella() {
       Alert.alert("Não foi possível responder", error instanceof Error ? error.message : String(error));
     } finally { setBusy(false); }
   };
-  const addReminder = async () => {
-    const title = reminderTitle.trim(), delay = Number(minutes);
-    if (!title || !Number.isFinite(delay) || delay < 1 || delay > 525600) {
-      Alert.alert("Verifique os dados", "Informe o título e um prazo entre 1 e 525600 minutos."); return;
-    }
+  const proposeReminder = async () => {
+    const request = input.trim();
+    if (!request || busy) return;
+    if (!key) { setTab("ajustes"); Alert.alert("Configure a Groq", "Salve sua chave primeiro."); return; }
+    setBusy(true);
+    try {
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "llama-3.1-8b-instant", temperature: 0,
+          response_format: { type: "json_object" },
+          messages: [
+            { role: "system", content: "Extraia um lembrete somente se o usuário especificar um intervalo relativo claro em minutos ou horas. Responda JSON válido com title (string) e minutes (inteiro positivo). Se ambíguo, minutes=0. Não invente horários nem datas. Português brasileiro." },
+            { role: "user", content: request },
+          ],
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result?.error?.message || "Erro na Groq");
+      const parsed = JSON.parse(result?.choices?.[0]?.message?.content || "{}") as { title?: unknown; minutes?: unknown };
+      const title = typeof parsed.title === "string" ? parsed.title.trim().slice(0, 180) : "";
+      const delay = Number(parsed.minutes);
+      if (!title || !Number.isInteger(delay) || delay < 1 || delay > 525600) {
+        Alert.alert("Prazo não identificado", "Informe um prazo claro, como: lembre de estudar daqui a 30 minutos."); return;
+      }
+      Alert.alert("Confirmar lembrete", `${title}\\nDaqui a ${delay} minuto(s)`, [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Agendar", onPress: () => { void scheduleReminder(title, delay); setInput(""); } },
+      ]);
+    } catch (error) { Alert.alert("Erro ao interpretar aviso", String(error)); }
+    finally { setBusy(false); }
+  };
+  const scheduleReminder = async (title: string, delay: number) => {
     try {
       const permission = await Notifications.requestPermissionsAsync();
       if (!permission.granted) { Alert.alert("Notificações desativadas", "Autorize notificações para receber lembretes."); return; }
@@ -96,11 +125,20 @@ export default function StandaloneStella() {
         content: { title: "Stella • Lembrete", body: title, sound: "default" },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: Math.round(delay * 60), channelId: Platform.OS === "android" ? "stella-reminders" : undefined },
       });
-      const updated = [{ id, title, at: Date.now() + delay * 60000 }, ...reminders];
+      const previous = await AsyncStorage.getItem(REMINDERS_KEY);
+      const list: Reminder[] = previous ? JSON.parse(previous) : [];
+      const updated = [{ id, title, at: Date.now() + delay * 60000 }, ...list];
       setReminders(updated); await AsyncStorage.setItem(REMINDERS_KEY, JSON.stringify(updated));
       setReminderTitle("");
       Alert.alert("Lembrete agendado", "A notificação foi programada no Android.");
     } catch (error) { Alert.alert("Erro ao agendar", String(error)); }
+  };
+  const addReminder = async () => {
+    const title = reminderTitle.trim(), delay = Number(minutes);
+    if (!title || !Number.isFinite(delay) || delay < 1 || delay > 525600) {
+      Alert.alert("Verifique os dados", "Informe o título e um prazo entre 1 e 525600 minutos."); return;
+    }
+    await scheduleReminder(title, delay);
   };
   const removeReminder = async (id: string) => {
     await Notifications.cancelScheduledNotificationAsync(id).catch(() => undefined);
@@ -126,7 +164,7 @@ export default function StandaloneStella() {
           renderItem={({ item }) => <View style={[s.bubble, item.role === "user" ? s.userBubble : s.assistantBubble]}><Text style={s.bubbleLabel}>{item.role === "user" ? "VOCÊ" : "STELLA"}</Text><Text style={s.message}>{item.content}</Text></View>} />
         {busy && <ActivityIndicator color="#fff" style={{ marginBottom: 8 }} />}
         <View style={s.compose}><TextInput style={s.composeInput} value={input} onChangeText={setInput} placeholder="Pergunte à Stella..." placeholderTextColor="#888" multiline editable={!busy} /><Pressable style={s.send} onPress={() => void send()} disabled={busy}><Text style={s.sendText}>➤</Text></Pressable></View>
-      </KeyboardAvoidingView> : null}
+        <Pressable style={s.choice} onPress={() => void proposeReminder()} disabled={busy}><Text style={s.message}>Criar lembrete com IA a partir do texto digitado</Text></Pressable>\n      </KeyboardAvoidingView> : null}
       {tab === "agenda" ? <ScrollView style={s.body} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <Text style={s.title}>Seus lembretes</Text><Text style={s.muted}>Notificações locais, inclusive com o app fechado, conforme as permissões do Android.</Text>
         <Text style={s.label}>O que lembrar?</Text><TextInput style={s.field} placeholder="Ex.: estudar matemática" placeholderTextColor="#777" value={reminderTitle} onChangeText={setReminderTitle} />
