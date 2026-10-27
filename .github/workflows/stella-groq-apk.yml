@@ -69,7 +69,7 @@ jobs:
           echo "Expo autolinking module:"
           node -p "require.resolve('expo-modules-autolinking/package.json')"
           echo "Expo autolinking resolve:"
-          node --trace-uncaught ./node_modules/expo-modules-autolinking/bin/expo-modules-autolinking resolve --platform android --json > /tmp/stella-autolinking.json
+          bunx --no-install expo-modules-autolinking resolve --platform android --json > /tmp/stella-autolinking.json
           test -s /tmp/stella-autolinking.json
           echo "Expo autolinking completed successfully"
       - name: Build standalone APK
