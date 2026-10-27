@@ -1,8 +1,8 @@
 {
   "expo": {
     "owner": "stella-ai",
-    "name": "Stella",
-    "slug": "stella-mobile",
+    "name": "Stella Groq",
+    "slug": "stella-groq",
     "version": "1.0.47",
     "runtimeVersion": {
       "policy": "fingerprint"
@@ -51,7 +51,7 @@
       }
     },
     "android": {
-      "package": "com.fromyou.stella",
+      "package": "com.f1n0zenix.stellagroq",
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/android-icon-foreground.png",
