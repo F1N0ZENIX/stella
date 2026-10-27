@@ -37,6 +37,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - name: Cache Gradle dependencies and build outputs
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
       - name: Configure Android SDK
         uses: android-actions/setup-android@v3
         with:
@@ -59,8 +63,9 @@ jobs:
           printf '\\n' >> android/gradle.properties
           cat >> android/gradle.properties <<'EOF'
           org.gradle.jvmargs=-Xmx3072m -XX:MaxMetaspaceSize=2048m -Dfile.encoding=UTF-8
-          org.gradle.workers.max=1
-          org.gradle.parallel=false
+          org.gradle.caching=true
+          org.gradle.workers.max=2
+          org.gradle.parallel=true
           kotlin.compiler.execution.strategy=in-process
           reactNativeArchitectures=arm64-v8a
           EOF
@@ -127,7 +132,7 @@ jobs:
           echo "STELLA_REAL_NODE=$REAL_NODE" >> "$GITHUB_ENV"
           echo "$RUNNER_TEMP/stella-node-shim" >> "$GITHUB_PATH"
       - name: Build standalone APK
-        run: ./gradlew :app:assembleRelease --no-daemon --max-workers=1 --no-parallel --info --stacktrace -PreactNativeArchitectures=arm64-v8a
+        run: ./gradlew :app:assembleRelease --no-daemon --max-workers=2 --parallel --console=plain -PreactNativeArchitectures=arm64-v8a
         working-directory: packages/mobile/android
       - name: Rename APK
         run: |
