@@ -114,8 +114,8 @@ export default function StandaloneStella() {
     ]);
   };
   return (
-    <SafeAreaView style={s.root}>
-      <View style={s.header}><Text style={s.brand}>STELLA <Text style={s.dot}>●</Text></Text><Text style={s.sub}>ASSISTENTE PESSOAL • GROQ</Text></View>
+    <SafeAreaView style={s.root}>\n      <AppBackdrop />
+      <View style={s.header}><StellaStatusHeader onPress={() => undefined} /><Text style={s.brand}>STELLA <Text style={s.dot}>●</Text></Text><Text style={s.sub}>ASSISTENTE PESSOAL • GROQ</Text></View>
       <View style={s.tabs}>
         {(["chat", "agenda", "ajustes"] as const).map(item => <Pressable key={item} onPress={() => setTab(item)} style={[s.tab, tab === item && s.activeTab]}><Text style={[s.tabText, tab === item && s.activeTabText]}>{item === "chat" ? "Chat" : item === "agenda" ? "Agenda" : "Ajustes"}</Text></Pressable>)}
       </View>
