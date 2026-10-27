@@ -85,7 +85,7 @@ const withTimeout = <T>(work: Promise<T>, label: string): Promise<T> =>
     Effect.tryPromise(() => work).pipe(
       Effect.timeout(R2_TIMEOUT_MS),
       Effect.mapError((error) =>
-        error._tag === "TimeoutException"
+        error._tag === "TimeoutError"
           ? new Error(`${label} timed out.`)
           : error,
       ),
