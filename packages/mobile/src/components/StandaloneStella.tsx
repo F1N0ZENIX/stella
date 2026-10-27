@@ -133,7 +133,8 @@ export default function StandaloneStella() {
       const answer = body?.choices?.[0]?.message?.content;
       if (typeof answer !== "string" || !answer.trim()) throw new Error("A Groq retornou uma resposta vazia.");
       const updated: Message[] = [...next, { role: "assistant", content: answer }];
-      setMessages(updated);\n      setAttachment(null);
+      setMessages(updated);
+      setAttachment(null);
       await AsyncStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
     } catch (error) {
       Alert.alert("Não foi possível responder", error instanceof Error ? error.message : String(error));
