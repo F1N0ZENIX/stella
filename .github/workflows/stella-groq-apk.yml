@@ -62,8 +62,18 @@ jobs:
           reactNativeArchitectures=arm64-v8a
           EOF
         working-directory: packages/mobile
+      - name: Diagnose Expo autolinking before Gradle
+        working-directory: packages/mobile
+        run: |
+          echo "Node: $(node --version)"
+          echo "Expo autolinking module:"
+          node -p "require.resolve('expo-modules-autolinking/package.json')"
+          echo "Expo autolinking resolve:"
+          node --trace-uncaught ./node_modules/expo-modules-autolinking/bin/expo-modules-autolinking resolve --platform android --json > /tmp/stella-autolinking.json
+          test -s /tmp/stella-autolinking.json
+          echo "Expo autolinking completed successfully"
       - name: Build standalone APK
-        run: ./gradlew :app:assembleRelease --no-daemon --max-workers=2 --no-parallel --stacktrace -PreactNativeArchitectures=arm64-v8a
+        run: ./gradlew :app:assembleRelease --no-daemon --max-workers=2 --no-parallel --info --stacktrace -PreactNativeArchitectures=arm64-v8a
         working-directory: packages/mobile/android
       - name: Rename APK
         run: |
