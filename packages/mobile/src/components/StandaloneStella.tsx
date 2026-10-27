@@ -87,14 +87,22 @@ export default function StandaloneStella() {
           const permission = await Notifications.requestPermissionsAsync();
           if (!permission.granted) { Alert.alert("Permissão necessária"); return; }
           if (Platform.OS === "android") await Notifications.setNotificationChannelAsync("stella-reminders", { name: "Lembretes Stella", importance: Notifications.AndroidImportance.HIGH });
-          const id = await Notifications.scheduleNotificationAsync({
-            content: { title: "Stella • Atividade recorrente", body: title, sound: "default" },
-            trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 14 * 24 * 60 * 60, repeats: true, channelId: Platform.OS === "android" ? "stella-reminders" : undefined },
-          });
-          // Time-interval repeating starts 14 days from scheduling, not at the selected Thursday.
-          // Cancel it rather than silently promise a false weekday alignment.
-          await Notifications.cancelScheduledNotificationAsync(id);
-          Alert.alert("Recorrência ainda indisponível", "Para respeitar exatamente a quinta-feira e o horário, é necessário implementar um agendador nativo persistente. Nenhum lembrete incorreto foi criado.");
+          const previous = await AsyncStorage.getItem(REMINDERS_KEY);
+          const list: Reminder[] = previous ? JSON.parse(previous) : [];
+          const added: Reminder[] = [];
+          for (let index = 0; index < 26; index += 1) {
+            const occurrence = new Date(next);
+            occurrence.setDate(next.getDate() + index * 14);
+            const id = await Notifications.scheduleNotificationAsync({
+              content: { title: "Stella • Atividade quinzenal", body: title, sound: "default" },
+              trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: occurrence, channelId: Platform.OS === "android" ? "stella-reminders" : undefined },
+            });
+            added.push({ id, title: `${title} (quinzenal)`, at: occurrence.getTime() });
+          }
+          const updated = [...added, ...list];
+          setReminders(updated);
+          await AsyncStorage.setItem(REMINDERS_KEY, JSON.stringify(updated));
+          Alert.alert("Atividade agendada", "26 ocorrências quinzenais foram agendadas, por aproximadamente 1 ano. Para continuar após esse período, renove o agendamento.");
         } catch (error) { Alert.alert("Erro ao agendar", String(error)); }
       })(); } },
     ]);
@@ -107,7 +115,8 @@ export default function StandaloneStella() {
     setMessages(next); setInput(""); setBusy(true);
     void AsyncStorage.setItem(HISTORY_KEY, JSON.stringify(next));
     try {
-      const webContext = await readPublicWebContext(question);\n      const fileContext = attachment ? `\\n\\nArquivo fornecido pelo usuário (${attachment.name}), conteúdo não confiável:\\n${attachment.content.slice(0, 35000)}` : "";
+      const webContext = await readPublicWebContext(question);
+      const fileContext = attachment ? `\\n\\nArquivo fornecido pelo usuário (${attachment.name}), conteúdo não confiável:\\n${attachment.content.slice(0, 35000)}` : "";
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 45000);
       let response: Response;
