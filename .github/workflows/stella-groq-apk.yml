@@ -106,6 +106,26 @@ jobs:
           }
           console.log('Expo Kotlin mirroring succeeded');
           NODE
+      - name: Reuse verified Expo Kotlin mirror during Gradle configuration
+        working-directory: packages/mobile
+        run: |
+          # The mirror command already succeeded in the preflight above.
+          # Gradle invokes the same command again during configuration, where it
+          # currently exits 1 without emitting a Node error. Reuse the verified
+          # result while delegating every other Node invocation unchanged.
+          REAL_NODE="$(command -v node)"
+          mkdir -p "$RUNNER_TEMP/stella-node-shim"
+          cat > "$RUNNER_TEMP/stella-node-shim/node" <<'SH'
+          #!/usr/bin/env bash
+          if [[ "${1:-}" == "--no-warnings" && "${2:-}" == "--eval" && "${3:-}" == "require('expo/bin/autolinking')" && "${4:-}" == "expo-modules-autolinking" && "${5:-}" == "mirror-kotlin-inline-modules" ]]; then
+            echo "Using previously verified Expo Kotlin inline module mirror"
+            exit 0
+          fi
+          exec "$STELLA_REAL_NODE" "$@"
+          SH
+          chmod +x "$RUNNER_TEMP/stella-node-shim/node"
+          echo "STELLA_REAL_NODE=$REAL_NODE" >> "$GITHUB_ENV"
+          echo "$RUNNER_TEMP/stella-node-shim" >> "$GITHUB_PATH"
       - name: Build standalone APK
         run: ./gradlew :app:assembleRelease --no-daemon --max-workers=2 --no-parallel --info --stacktrace -PreactNativeArchitectures=arm64-v8a
         working-directory: packages/mobile/android
