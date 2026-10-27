@@ -54,6 +54,9 @@ jobs:
           EXPO_NO_CAPABILITY_SYNC: '1'
       - name: Configure Gradle memory and ARM64-only build
         run: |
+          # Expo prebuild may leave gradle.properties without a trailing newline.
+          # Always insert a separator before appending Gradle settings.
+          printf '\\n' >> android/gradle.properties
           cat >> android/gradle.properties <<'EOF'
           org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=768m -Dfile.encoding=UTF-8
           org.gradle.workers.max=2
