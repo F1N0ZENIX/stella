@@ -17,7 +17,7 @@ export default function StandaloneStella() {
   const [tab, setTab] = useState<Tab>("chat");
   const [key, setKey] = useState("");
   const [keyDraft, setKeyDraft] = useState("");
-  const [model, setModel] = useState("llama-3.3-70b-versatile");
+  const [model, setModel] = useState("llama-3.1-8b-instant");
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -135,7 +135,7 @@ export default function StandaloneStella() {
         <Text style={s.label}>Chave da API Groq</Text><TextInput style={s.field} value={keyDraft} onChangeText={setKeyDraft} placeholder="gsk_..." placeholderTextColor="#777" secureTextEntry autoCapitalize="none" autoCorrect={false} />
         <Pressable style={s.primary} onPress={() => void saveKey()}><Text style={s.primaryText}>Salvar chave</Text></Pressable>
         <Text style={s.label}>Modelo</Text>
-        {["llama-3.3-70b-versatile", "llama-3.1-8b-instant"].map(m => <Pressable key={m} style={s.choice} onPress={() => setModel(m)}><Text style={s.message}>{model === m ? "◉ " : "○ "}{m}</Text></Pressable>)}
+        {["llama-3.1-8b-instant", "llama-3.3-70b-versatile"].map(m => <Pressable key={m} style={s.choice} onPress={() => setModel(m)}><Text style={s.message}>{model === m ? "◉ " : "○ "}{m}</Text></Pressable>)}
         <Text style={s.label}>Minha Sala</Text><Pressable style={s.choice} onPress={() => void Linking.openURL("https://f1n0zenix.github.io/minha-sala/")}><Text style={s.message}>Abrir Minha Sala ↗</Text></Pressable>
         <Text style={s.label}>Privacidade</Text><Pressable style={s.choice} onPress={clearChat}><Text style={s.delete}>Apagar histórico local do chat</Text></Pressable>
         <Text style={s.muted}>Versão independente inicial. Ativação por voz em segundo plano e integração bidirecional com Minha Sala ainda não implementadas.</Text>
