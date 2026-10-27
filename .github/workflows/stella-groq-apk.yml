@@ -20,8 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
-      JAVA_TOOL_OPTIONS: '-XX:MaxMetaspaceSize=768m'
-      GRADLE_OPTS: '-Xmx1024m -XX:MaxMetaspaceSize=512m'
+      JAVA_TOOL_OPTIONS: '-XX:MaxMetaspaceSize=2048m'
+      GRADLE_OPTS: '-Xmx1536m -XX:MaxMetaspaceSize=2048m'
     defaults:
       run:
         shell: bash
@@ -58,8 +58,8 @@ jobs:
           # Always insert a separator before appending Gradle settings.
           printf '\\n' >> android/gradle.properties
           cat >> android/gradle.properties <<'EOF'
-          org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=768m -Dfile.encoding=UTF-8
-          org.gradle.workers.max=2
+          org.gradle.jvmargs=-Xmx3072m -XX:MaxMetaspaceSize=2048m -Dfile.encoding=UTF-8
+          org.gradle.workers.max=1
           org.gradle.parallel=false
           kotlin.compiler.execution.strategy=in-process
           reactNativeArchitectures=arm64-v8a
@@ -127,7 +127,7 @@ jobs:
           echo "STELLA_REAL_NODE=$REAL_NODE" >> "$GITHUB_ENV"
           echo "$RUNNER_TEMP/stella-node-shim" >> "$GITHUB_PATH"
       - name: Build standalone APK
-        run: ./gradlew :app:assembleRelease --no-daemon --max-workers=2 --no-parallel --info --stacktrace -PreactNativeArchitectures=arm64-v8a
+        run: ./gradlew :app:assembleRelease --no-daemon --max-workers=1 --no-parallel --info --stacktrace -PreactNativeArchitectures=arm64-v8a
         working-directory: packages/mobile/android
       - name: Rename APK
         run: |
