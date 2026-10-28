@@ -3,6 +3,7 @@ import { ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Linking, Plat
 import { Text } from "./Text";
 import { AppBackdrop } from "./AppBackdrop";
 import { StellaStatusHeader } from "./StellaStatusHeader";
+import { useColors } from "../theme/theme-context";
 import { readPublicWebContext } from "../lib/public-web-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
@@ -19,6 +20,8 @@ const API_KEY = "stella.groq.api-key.v1";
 const SYSTEM = "Você é Stella, uma assistente pessoal Android. Responda em português do Brasil, de forma clara e prática. Não afirme ter criado lembretes ou executado ações sem confirmação do aplicativo. Para criar lembretes, oriente o usuário a usar a aba Agenda.";
 
 export default function StandaloneStella() {
+  const colors = useColors();
+  const [drawerVisible, setDrawerVisible] = useState(false);
   const [tab, setTab] = useState<Tab>("chat");
   const [key, setKey] = useState("");
   const [keyDraft, setKeyDraft] = useState("");
@@ -174,7 +177,8 @@ export default function StandaloneStella() {
   };
   return (
     <SafeAreaView style={s.root}>\n      <AppBackdrop />
-      <View style={s.header}><StellaStatusHeader onPress={() => undefined} /><Text style={s.brand}>STELLA <Text style={s.dot}>●</Text></Text><Text style={s.sub}>ASSISTENTE PESSOAL • GROQ</Text></View>
+      <View style={s.header}><Pressable onPress={() => setDrawerVisible(!drawerVisible)} accessibilityLabel="Abrir menu Stella"><Text style={s.brand}>☰</Text></Pressable><StellaStatusHeader onPress={() => undefined} /><Text style={s.brand}>STELLA</Text></View>
+      {drawerVisible && <View style={[s.drawer, { backgroundColor: colors.background }]}><Text style={s.drawerTitle}>STELLA</Text>{(["chat", "agenda", "ajustes"] as const).map(item => <Pressable key={item} style={s.drawerItem} onPress={() => { setTab(item); setDrawerVisible(false); }}><Text style={s.message}>{item === "chat" ? "Conversa" : item === "agenda" ? "Agenda" : "Configurações"}</Text></Pressable>)}</View>}
       <View style={s.tabs}>
         {(["chat", "agenda", "ajustes"] as const).map(item => <Pressable key={item} onPress={() => setTab(item)} style={[s.tab, tab === item && s.activeTab]}><Text style={[s.tabText, tab === item && s.activeTabText]}>{item === "chat" ? "Chat" : item === "agenda" ? "Agenda" : "Ajustes"}</Text></Pressable>)}
       </View>
@@ -207,7 +211,7 @@ export default function StandaloneStella() {
   );
 }
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#000" }, header: { paddingHorizontal: 22, paddingTop: 18, paddingBottom: 14 }, brand: { color: "#fff", fontSize: 28, fontWeight: "900", letterSpacing: 2 }, dot: { color: "#e5e5e5", fontSize: 16 }, sub: { color: "#888", fontSize: 10, letterSpacing: 2, marginTop: 3 },
+  root: { flex: 1, backgroundColor: "#000" }, drawer: { position: "absolute", zIndex: 20, top: 75, left: 0, width: 285, padding: 20, borderRadius: 16, borderColor: "#555", borderWidth: 1 }, drawerTitle: { color: "#fff", fontSize: 24, fontWeight: "900", marginBottom: 20 }, drawerItem: { paddingVertical: 16, borderBottomWidth: 1, borderColor: "#333" }, header: { paddingHorizontal: 22, paddingTop: 18, paddingBottom: 14 }, brand: { color: "#fff", fontSize: 28, fontWeight: "900", letterSpacing: 2 }, dot: { color: "#e5e5e5", fontSize: 16 }, sub: { color: "#888", fontSize: 10, letterSpacing: 2, marginTop: 3 },
   tabs: { flexDirection: "row", paddingHorizontal: 16, gap: 8, paddingBottom: 12 }, tab: { flex: 1, borderWidth: 1, borderColor: "#333", paddingVertical: 12, borderRadius: 14, alignItems: "center" }, activeTab: { backgroundColor: "#fff", borderColor: "#fff" }, tabText: { color: "#aaa", fontWeight: "700" }, activeTabText: { color: "#000" },
   body: { flex: 1 }, chatList: { padding: 16, flexGrow: 1, gap: 12 }, empty: { flex: 1, justifyContent: "center", paddingHorizontal: 14 }, welcome: { color: "#fff", fontSize: 30, fontWeight: "800", marginBottom: 12 }, muted: { color: "#999", fontSize: 13, lineHeight: 20 },
   bubble: { padding: 15, borderRadius: 16, maxWidth: "94%", gap: 7 }, userBubble: { backgroundColor: "#252525", alignSelf: "flex-end" }, assistantBubble: { backgroundColor: "#111", borderWidth: 1, borderColor: "#333", alignSelf: "flex-start" }, bubbleLabel: { color: "#999", fontSize: 10, fontWeight: "800", letterSpacing: 1.5 }, message: { color: "#fff", fontSize: 15, lineHeight: 23 },
